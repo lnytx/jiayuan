@@ -8,6 +8,8 @@
   pageTotal是当前查询的总页数
   Spider不断yield(twisted异步)这些url(request)到 Scrapy引擎之后返回Response
   在2000条记录时发现有非常大量的重复，之后重复比继续增大，排除这种方式
+  
+  
 2、通过数据接口
 先构造post参数
 data = {
@@ -24,6 +26,8 @@ data = {
 }
 然后通过scrapy.FormRequest.from_response提交，想获取结果数据，发现改变p结果跟第一中方式一样，都是重复数据，不明白为什么网上有人使用这种方式能获取数据
 大概的看了一个，发现这种方式有一长串的hash值，无法破解，这种方式不行
+
+
 3、通过webdriver先进入搜索页面的第一页
   http://search.jiayuan.com/v2/index.php?key=&sex=f&stc=&sn=default&sv=1&p=699&pt=163649&ft=off&f=select&mt=d
   然后在中间件通过
@@ -31,6 +35,7 @@ data = {
   next_page.click()
   去一页一页的点击，想通过这种方式获取页面人员详细url
   结果发现2500条记录之后详情url就会一直出现重复，这种方式也不可取
+  
 4、最后直接使用最保险，获取的数据最多（无需通过搜索页面）直接构造url，当2开头的数据出现后，应该可以结束掉了，佳缘应该是没有那么多会员的
   for p in range(100000000,999999999):
       url = "http://www.jiayuan.com/%s" %(p)
@@ -40,10 +45,10 @@ data = {
    然后再起一个项目jiayuan_details，从redis中读取这些url(高并发的读由redis自己来控制)，获取item(此处要求item尽可能的少，然后尽可能的少一些
    逻辑控制，否则下载中间件会出现瓶颈)
    通过create_jiayuan_urls获取详情url(可以分布式操作)
-   通过jiayuan_details获取最后的详细信息(可以分布式操作)理论上只要代理IP给力，这个架构还是很不错的
-   get_proxy_ip.py获取几个网站的proxy_ip验证并写入数据库
+   通过jiayuan_details获取最后的详细信息(可以分布式操作)理论上只要代理IP给力（当当前代理IP连接异常时，会从数据库随机选取一个代理IP继续执行）
+   get_proxy_ip.py获取几个网站的proxy_ip验证并写入数据库
    from_redis_to_mysql.py这里的方法是根据redis中存储的item下载图片，并将item格式化之后存储到mysql中
-   无图无真相
+   上图
 
 
 人员基本信息表
