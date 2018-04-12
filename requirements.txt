@@ -11,4 +11,3 @@ pip install requirements.txt安装
 
 先配置好环境，然后这里导出了一份本机的requirements.txt
 大家可以直接安装，当然嫌麻烦的话可以手动安装上面的几个包。
-
