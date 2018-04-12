@@ -57,11 +57,11 @@ SCHEDULER_QUEUE_CLASS = 'scrapy_redis.queue.SpiderPriorityQueue'
 
 
 # 指定redis主机
-REDIE_URL = None
-REDIS_HOST='127.0.0.1'
-REDIS_PORT=6379
+# REDIE_URL = None
+# REDIS_HOST='127.0.0.1'
+# REDIS_PORT=6379
 
-
+REDIS_URL = 'redis://192.168.160.132:6379'
 
 RETRY_HTTP_CODES =  [500, 503,502,504, 400, 408] 
 
