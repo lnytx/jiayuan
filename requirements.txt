@@ -1,0 +1,14 @@
+环境
+scrapy
+scrapy-redis
+wedriver=2.35
+chrome>=64
+python>=3
+
+目录:create_jiayuan_urls/create_jiayuan_urls/requirements.txt
+pip freeze > create_jiayuan_urls/requirements.txt
+pip install requirements.txt安装
+
+先配置好环境，然后这里导出了一份本机的requirements.txt
+大家可以直接安装，当然嫌麻烦的话可以手动安装上面的几个包。
+
