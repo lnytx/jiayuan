@@ -60,88 +60,109 @@ print("hdader",header)
 lock = threading.Lock()#定义锁，防止重复写文件
 q = Queue()#创建先进先出队列，全局中变量
 ip={}   #初始化列表用来存储获取到的IP
-# url='http://www.xicidaili.com/'
-# url = "http://ip.yqie.com/ipproxy.htm"
+url1='http://www.xicidaili.com/'
+url2 = "http://ip.yqie.com/ipproxy.htm"
 #     url = "http://ip.seofangfa.com/"
-# url = "http://www.66ip.cn/areaindex_19/1.html"
-# url = "http://www.ip3366.net/?stype=1&page=4"#可翻页
-url = "https://www.kuaidaili.com/free/inha/4/"
-
+url3= "http://www.66ip.cn/"
+url3 = "http://www.66ip.cn/4.html"
+url4 = "http://www.ip3366.net/?stype=1&page=4"#可翻页
+url5 = "https://www.kuaidaili.com/free/inha/4/"
+url_list=[url1,url2,url3,url4,url5]
 # url = 'http://ip.zdaye.com/'
-req=requests.get(url=url,headers=header)
-req.encoding = 'utf-8' 
-r=req.text
-soup=BeautifulSoup(r,'html.parser')
-# print(soup)
+
 p = re.compile('^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$')#判断是否为IP
 proxy_ip=[]
 set_ip = set()#利用set去除文件中重复的IP
 ip_list=[]
 ip_port=''
-# print("soup",soup)
-#     iplistn=soup.findAll('tr',class_='')#对应的url='http://www.xicidaili.com/'
-# iplistn=soup.findAll('tr',align='center')#url = "http://ip.yqie.com/ipproxy.htm"
-if 'www.66ip.cn' in url:
-    iplistn=soup.findAll('table',attrs={'bordercolor':'#6699ff'})#url = "http://www.66ip.cn/areaindex_2/1.html"
-    for tr in iplistn:
-        td = tr.find_all('td')
-        for j in range(len(td)):
-#             print("j",type(td[j]),td[j].text)
-            if p.match(td[j].text):#如果是IP
-            #ip_port[ip_list[j]]=ip_list[j+1]
-                ip_port = str(td[j].text.strip())+":"+str(td[j+1].text.strip())#119.188.94.145:80这种形式
-                set_ip.add(ip_port)
-if 'www.xicidaili' in url:
-    iplistn=soup.findAll('tr',class_='')
-    for i in iplistn:
-#         print("i",i)
-        ip=i.text.strip().strip()
-        ip_list=ip.split()
-    for j in range(len(ip_list)):
-        if p.match(ip_list[j]):#如果是IP
-            #ip_port[ip_list[j]]=ip_list[j+1]
-            ip_port = str(ip_list[j].strip())+":"+str(ip_list[j+1].strip())#119.188.94.145:80这种形式
-            set_ip.add(ip_port)
-    print("iplistn",iplistn)
-if 'ip.yqie.com' in url:
-    iplistn=soup.findAll('tr',align='center')
-    for i in iplistn:
-#         print("i",i)
-        ip=i.text.strip().strip()
-        ip_list=ip.split()
+for url in url_list:
+    print("url",url)
+    try:
+        req=requests.get(url=url,headers=header)
+        req.encoding = 'utf-8' 
+        r=req.text
+        soup=BeautifulSoup(r,'html.parser')
+    except Exception as e:
+        print("访问代理网站有问题",str(e))
+    # print(soup)
+    # print("soup",soup)
+    #     iplistn=soup.findAll('tr',class_='')#对应的url='http://www.xicidaili.com/'
+    # iplistn=soup.findAll('tr',align='center')#url = "http://ip.yqie.com/ipproxy.htm"
+    if 'www.66ip.cn' in url:#翻页处理
+        for i in range(1,30):
+            print("第%s页 ：" % i)
+            url = "http://www.66ip.cn/%s.html" % i
+            print("当前url%s" % url)
+            req=requests.get(url=url,headers=header)
+            time.sleep(4)
+            req.encoding = 'utf-8' 
+            r=req.text
+            soup=BeautifulSoup(r,'html.parser')
+            iplistn=soup.findAll('table',attrs={'bordercolor':'#6699ff'})#url = "http://www.66ip.cn/areaindex_2/1.html"
+            for tr in iplistn:
+                td = tr.find_all('td')
+                for j in range(len(td)):
+        #             print("j",type(td[j]),td[j].text)
+                    if p.match(td[j].text):#如果是IP
+                    #ip_port[ip_list[j]]=ip_list[j+1]
+                        ip_port = str(td[j].text.strip())+":"+str(td[j+1].text.strip())#119.188.94.145:80这种形式
+                        set_ip.add(ip_port)
+        print("www.66ip.cn",len(list(set_ip)),set_ip)
+    if 'www.xicidaili' in url:
+        iplistn=soup.findAll('tr',class_='')
+        for i in iplistn:
+    #         print("i",i)
+            ip=i.text.strip().strip()
+            ip_list=ip.split()
         for j in range(len(ip_list)):
             if p.match(ip_list[j]):#如果是IP
                 #ip_port[ip_list[j]]=ip_list[j+1]
                 ip_port = str(ip_list[j].strip())+":"+str(ip_list[j+1].strip())#119.188.94.145:80这种形式
                 set_ip.add(ip_port)
-if 'www.ip3366.net' in url:
-    print("soup",soup)
-    iplistn=soup.findAll('tr')
-    for i in iplistn:
-#         print("i",i)
-        ip=i.text.strip().strip()
-        ip_list=ip.split()
-        for j in range(len(ip_list)):
-            if p.match(ip_list[j]):#如果是IP
-                ip_port = str(ip_list[j].strip())+":"+str(ip_list[j+1].strip())#119.188.94.145:80这种形式
-                set_ip.add(ip_port)
-
-if 'www.kuaidaili.com' in url:
-    iplistn=soup.findAll('table',class_="table table-bordered table-striped")#url = "http://www.66ip.cn/areaindex_2/1.html"
-    print("soup",soup)
-    for tr in iplistn:
-        td = tr.find_all('td')
-        for j in range(len(td)):
-            print("j",type(td[j]),td[j].text)
-            if p.match(td[j].text):#如果是IP
-            #ip_port[ip_list[j]]=ip_list[j+1]
-                ip_port = str(td[j].text.strip())+":"+str(td[j+1].text.strip())#119.188.94.145:80这种形式
-                set_ip.add(ip_port)
+        print("www.xicidaili",len(list(set_ip)),set_ip)
+    if 'ip.yqie.com' in url:
+        iplistn=soup.findAll('tr',align='center')
+        for i in iplistn:
+    #         print("i",i)
+            ip=i.text.strip().strip()
+            ip_list=ip.split()
+            for j in range(len(ip_list)):
+                if p.match(ip_list[j]):#如果是IP
+                    #ip_port[ip_list[j]]=ip_list[j+1]
+                    ip_port = str(ip_list[j].strip())+":"+str(ip_list[j+1].strip())#119.188.94.145:80这种形式
+                    set_ip.add(ip_port)
+        print("ip.yqie.com",len(list(set_ip)),set_ip)
+    if 'www.ip3366.net' in url:
+#         print("soup",soup)
+        iplistn=soup.findAll('tr')
+        for i in iplistn:
+    #         print("i",i)
+            ip=i.text.strip().strip()
+            ip_list=ip.split()
+            for j in range(len(ip_list)):
+                if p.match(ip_list[j]):#如果是IP
+                    ip_port = str(ip_list[j].strip())+":"+str(ip_list[j+1].strip())#119.188.94.145:80这种形式
+                    set_ip.add(ip_port)
+        print("www.ip3366.net",len(list(set_ip)),set_ip)
+    
+    if 'www.kuaidaili.com' in url:
+        iplistn=soup.findAll('table',class_="table table-bordered table-striped")#url = "http://www.66ip.cn/areaindex_2/1.html"
+#         print("soup",soup)
+        for tr in iplistn:
+            td = tr.find_all('td')
+            for j in range(len(td)):
+#                 print("j",type(td[j]),td[j].text)
+                if p.match(td[j].text):#如果是IP
+                #ip_port[ip_list[j]]=ip_list[j+1]
+                    ip_port = str(td[j].text.strip())+":"+str(td[j+1].text.strip())#119.188.94.145:80这种形式
+                    set_ip.add(ip_port)
+        print("www.kuaidaili.com",len(list(set_ip)),set_ip)
 #将set中元素添加到list
 for name in set_ip:
     print("name",name)
 #     ip["http:"] = name
     proxy_ip.append(name)#将不重复的IP添加到列表中[{'http:','192.1.1.8:808'}]
+print("集合中数据量%s" %len(proxy_ip))
 #使用代理IP访问url
 
 
@@ -206,8 +227,7 @@ def check_url(i):
     
 #         ip['http'] = que.get()#从队列中读取爬到的IP
     try:
-        req = requests.get(url, proxies={"http":"http://"+proxy_ip[i]}, headers=header)
-        print("返回状态码",req.status_code)
+        req = requests.get(url, proxies={"http":"http://"+proxy_ip[i]}, headers=header,timeout=2)
         if req.status_code==200:
             try:
                 lock.acquire()
