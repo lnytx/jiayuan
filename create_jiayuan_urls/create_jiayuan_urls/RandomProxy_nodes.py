@@ -5,14 +5,8 @@ Created on 2018年3月1日
 @author: ning.lin
 设置代理IP
 '''
-#定义几个全局变量
 '''
-从http://www.xicidaili.com/获取代理IP，并验证是否能访问爬虫目标网站
-如果不能访问，则删除，
-'''
-#定义几个全局变量
-'''
-获取网上的代理IP
+多节点跑时使用用这个proxy中间件
 '''
 
 import datetime
@@ -35,6 +29,8 @@ import pymysql
 import pymysql
 import requests
 from scrapy.utils.project import get_project_settings
+
+import datetime
 
 
 from twisted.internet import defer
@@ -86,76 +82,19 @@ def get_proxy_ip():
         cursor=conn.cursor()
         now_time = time.strftime("%Y-%m-%d %H:%M:%S")
         try:
-            cursor.execute("select ip_port,user_agent from proxy_ip where is_current=1")#单机时使用
+            '''
+            集群使用时不管是超时还是什么，直接获取一个随机IP，防止多个node同时使用一个IP
+            '''
+            rand_ip_slq = '''SELECT ip_port,user_agent FROM proxy_ip WHERE validate=1 and id >=((SELECT MAX(id) FROM proxy_ip)-(SELECT MIN(id ) FROM proxy_ip)) * RAND() + (SELECT MIN(id) FROM proxy_ip)  LIMIT 1'''
+            cursor.execute(rand_ip_slq)
             pro_ip = cursor.fetchone()
-            
-            #设置当前使用的IP状态is_current为1
-            cursor.execute('''update proxy_ip set is_current=%s,last_time_use=%s where ip_port=%s''',(1,now_time,pro_ip['ip_port']))
-    #         ip = pro_ip['ip_port']
-    #         user_agent = pro_ip['user_agent']
-    #         print("当前IP为",ip)
-    #         print("当前Iuser_agent为",user_agent)
         except Exception as e:
             print("get_proxy_ip报错",str(e))
         finally:
-                conn.commit()
-                conn.close()
+            conn.commit()
+            conn.close()
         return pro_ip
 
-
-def get_random_ip(change_ip):
-    '''
-    连接超时执行此
-    '''
-    conn=connect()
-    cursor=conn.cursor()
-    print("旧IP超时",change_ip)
-    ip_exit = ''
-    now_time = time.strftime("%Y-%m-%d %H:%M:%S")
-    try:
-        rand_ip_slq = '''SELECT ip_port,user_agent FROM proxy_ip WHERE validate=1 and ip_port!=%s and id >=((SELECT MAX(id) FROM proxy_ip)-(SELECT MIN(id ) FROM proxy_ip)) * RAND() + (SELECT MIN(id) FROM proxy_ip)  LIMIT 1'''
-        cursor.execute(rand_ip_slq,(change_ip,))
-        ip_exit = cursor.fetchone()
-        print("获取到了新的IP",ip_exit['ip_port'])
-        if ip_exit:
-           #将当前获取的IPcurrent状态改为1表示当前在使用的IP并且修改当前时间为最近一次使用时间
-            cursor.execute('''update proxy_ip set is_current=%s,last_time_use=%s where ip_port=%s''',(1,now_time,ip_exit['ip_port']))
-            conn.commit()
-            #将之前状态为当前IP的状态改成0（非当前IP）
-            cursor.execute("select last_time_use from proxy_ip where ip_port=%s",change_ip)
-            conn.commit()
-            use_time = cursor.fetchone()['last_time_use']
-            print("user_time",use_time)
-            startTime= datetime.datetime.strptime(str(use_time),"%Y-%m-%d %H:%M:%S")  
-            endTime= datetime.datetime.strptime(str(now_time),"%Y-%m-%d %H:%M:%S")
-            seconds = (endTime- startTime).seconds#获取此次与上次时间之差就等于使用了的时间
-            cursor.execute('''update proxy_ip set is_current=%s,use_times=%s,validate=%s where ip_port=%s''',(0,seconds,0,change_ip))#修改超时的IP状态
-            conn.commit()
-            print("IP状态已修改")
-            #cursor.execute('''update proxy_ip set is_current=%s,last_time_use=%s where ip_port=%s''',(1,now_time,ip_exit['ip_port']))
-        else:
-            pass
-#                 main()#从网上获取IP并写入数据库中
-    except Exception as e:
-        print("未找到sql该表可能为空，需要去爬IP",str(e))
-#             main()#从网上获
-    finally:
-        conn.close()
-    return ip_exit#返回格式165.227.40.248:3128
-# class ProxyIP(object): 
-#     proxyList = []
-#     f_ip = "D:\\Program Files\\Python_Workspace\\spiders\\p_scrapy\\test_spiders\\test_spiders\\proxy_ip.txt"
-#     with open (f_ip,'r') as f:
-#         for line in f.readlines():
-#             print("line",line)
-#             proxyList.append(line)
-# #     proxyList = ["122.114.31.177:808"]
-#     def process_request(self, request, spider):  
-#         # Set the location of the proxy  
-#         pro_adr = random.choice(self.proxyList)  
-#         print("当前使用的代理IP:" + pro_adr)  
-#         request.meta['proxy'] = "http://" + pro_adr  
-#RetryMiddleware
 '''
 代理中间件
 '''
@@ -176,6 +115,10 @@ class ProxyIP(object):
     def process_request(self, request, spider):  
         # Set the location of the proxy  
         print("从数据库获取新的IP")
+        i = datetime.datetime.now()#获取当前时间
+#         if i.minute % 10 ==0:#每10分钟换一次IP，中间间隔60秒
+#             self.proxy_ip = get_proxy_ip()
+#             time.sleep(60)
         self.proxy_ip = get_proxy_ip()
         print("当前使用的代理IP:" + self.proxy_ip['ip_port'])
         print("当前使用的代理agent:" + self.proxy_ip['user_agent'])
@@ -195,7 +138,7 @@ class ProxyIP(object):
 #                 elif request_proxy_index == self.proxy_index:  # 虽然超时，但是如果之前一直很好用，也不设为invalid
 #                     self.inc_proxy_index()
         print("当前",self.proxy_ip['ip_port'])
-        proxy_ip = get_random_ip(self.proxy_ip['ip_port'])
+        proxy_ip = get_proxy_ip()#不考虑状态，直接取随机IP
 #         print("换一个代理IP:" + self.proxy_ip['ip_port'])
 #         print("换一个代理agent:" + self.proxy_ip['user_agent'])
         request.meta['proxy'] = "http://" + self.proxy_ip['ip_port']

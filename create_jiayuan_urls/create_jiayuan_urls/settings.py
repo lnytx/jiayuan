@@ -63,7 +63,7 @@ SCHEDULER_QUEUE_CLASS = 'scrapy_redis.queue.SpiderPriorityQueue'
 
 REDIS_URL = 'redis://192.168.160.132:6379'
 
-RETRY_HTTP_CODES =  [500, 503,502,504, 400, 408] 
+# RETRY_HTTP_CODES =  [500, 503,502,504, 400, 408] 
 
 #爬取间隔
 DOWNLOAD_DELAY = 3
@@ -72,8 +72,8 @@ DOWNLOAD_DELAY = 3
 COOKIES_ENABLED = False
 
 #待爬网站的用户名与密码
-USER_NAME = '你的用户名'
-PASSWD = '你的密码'
+USER_NAME = '用户名'
+PASSWD = '密码'
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
 
@@ -101,7 +101,7 @@ PASSWD = '你的密码'
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    'create_jiayuan_urls.middlewares2.SeleniumMiddleware':205,
+#     'create_jiayuan_urls.middlewares2.SeleniumMiddleware':205,
     'create_jiayuan_urls.retry_mid.Retry_Custom': 201,
     'create_jiayuan_urls.RandomProxy.ProxyIP': 100,#代理IP与agent合并到一起了
     'create_jiayuan_urls.RandomUserAgent.UserAgent': 200,

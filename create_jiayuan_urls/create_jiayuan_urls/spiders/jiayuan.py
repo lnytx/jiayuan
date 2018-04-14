@@ -53,10 +53,10 @@ class jiayuan_data(RedisSpider):
     def start_requests(self):#
         for p in range(100000000,999999999):
             url = "http://www.jiayuan.com/%s" %(p)
-#             yield Request(url=url)
-            yield Request(url=url,callback=self.get_main_info)
+            yield Request(url=url)
+#             yield Request(url=url,callback=self.get_main_info)
     def get_main_info(self,response):
-        url_main = response.body.decode('utf-8')
+#         url_main = response.body.decode('utf-8')
 #         print("从中间件传来的body页面",type(url_main),url_main)
         print("当前返回的url",response.url)
         re_str = 'blacklist.php?uid'#无效的url

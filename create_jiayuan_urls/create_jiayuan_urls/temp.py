@@ -1,195 +1,33 @@
 # -*- coding:utf-8 -*-
 '''
-Created on 2018年2月28日
-@author: ning.lin
+测试用，可删除
 '''
-'''
-从http://www.xicidaili.com/获取代理IP，并验证是否能访问爬虫目标网站
-如果不能访问，则删除，
-'''
-#定义几个全局变量
 
-from distutils.command.check import check
-from multiprocessing import Pool
-import multiprocessing
-import os
-from queue import Queue
-import random
-import re
-import socket
-import threading
+import datetime
 import time
-
-from bs4 import BeautifulSoup
 import pymysql
+import threading
 import requests
-from scrapy.utils.project import get_project_settings
+import random
 
 
+'''
+手动提取IP
+http://www.89ip.cn/
+http://www.66ip.cn/pt.html
+'''
 
-
-# print("文件为",settings['PROXY_IP_FILE'])
-# PROXY_IP_FILE=settings['PROXY_IP_FILE']
-
-
-
-user_agent_list = [\
-        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1",
-        "Mozilla/5.0 (X11; CrOS i686 2268.111.0) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11",
-        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.6 (KHTML, like Gecko) Chrome/20.0.1092.0 Safari/536.6",
-        "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.6 (KHTML, like Gecko) Chrome/20.0.1090.0 Safari/536.6",
-        "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/19.77.34.5 Safari/537.1",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.9 Safari/536.5",
-        "Mozilla/5.0 (Windows NT 6.0) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.36 Safari/536.5",
-        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
-        "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_0) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1063.0 Safari/536.3",
-        "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1062.0 Safari/536.3",
-        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1062.0 Safari/536.3",
-        "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
-        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
-        "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
-        "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1061.0 Safari/536.3",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.24 (KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24",
-        "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/535.24 (KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24"
-       ]
-#获取随机的header
-header={"User-Agent":random.choice(user_agent_list)}
-print("hdader",header)
-#获取代理IP
 lock = threading.Lock()#定义锁，防止重复写文件
-q = Queue()#创建先进先出队列，全局中变量
-ip={}   #初始化列表用来存储获取到的IP
-url1='http://www.xicidaili.com/nn'#国内高匿代理
-url1_2='http://www.xicidaili.com/nt'#国内透明代理
-url1_3='http://www.xicidaili.com/wt/'#国内http代理
-url1_4='http://www.xicidaili.com/wn/'#国内https代理
-
-url2 = "http://ip.yqie.com/ipproxy.htm"
-# #     url = "http://ip.seofangfa.com/"
-url3= "http://www.66ip.cn/"
-url4 = "http://www.ip3366.net/?stype=1&page=4"#可翻页
-url5 = "https://www.kuaidaili.com/free/inha/4/"
-url_list=[url1,url1_2,url1_3,url1_4,url2,url3,url4,url5]
-# url = 'http://ip.zdaye.com/
-
-
-p = re.compile('^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$')#判断是否为IP
 proxy_ip=[]
-set_ip = set()#利用set去除文件中重复的IP
-ip_list=[]
-ip_port=''
-
-
-
-def get_soup():#返回页面内容
-    try:
-        req=requests.get(url=url,headers=header)
-        req.encoding = 'utf-8' 
-        r=req.text
-        soup=BeautifulSoup(r,'html.parser')
-        return soup
-    except Exception as e:
-        print("访问代理网站有问题",str(e))
-    
-#将xicidaili代理单独拿出来，因为其有多种IP可选
-def get_xicidaili(url):
-    soup=get_soup()
-    iplistn=soup.findAll('tr',class_='')
-    for i in iplistn:
-        ip=i.text.strip().strip()
-        ip_list=ip.split()
-        for j in range(len(ip_list)):
-            if p.match(ip_list[j]):#如果是IP
-                #ip_port[ip_list[j]]=ip_list[j+1]
-                ip_port = str(ip_list[j].strip())+":"+str(ip_list[j+1].strip())#119.188.94.145:80这种形式
-                set_ip.add(ip_port)
-    return set_ip
-
-for url in url_list:
-    print("url",url)
-    if 'www.66ip.cn' in url:#翻页处理
-        for i in range(1,30):
-            print("第%s页 ：" % i)
-            url = "http://www.66ip.cn/%s.html" % i
-            print("当前url%s" % url)
-            soup=get_soup()
-            iplistn=soup.findAll('table',attrs={'bordercolor':'#6699ff'})#url = "http://www.66ip.cn/areaindex_2/1.html"
-            for tr in iplistn:
-                td = tr.find_all('td')
-                for j in range(len(td)):
-        #             print("j",type(td[j]),td[j].text)
-                    if p.match(td[j].text):#如果是IP
-                    #ip_port[ip_list[j]]=ip_list[j+1]
-                        ip_port = str(td[j].text.strip())+":"+str(td[j+1].text.strip())#119.188.94.145:80这种形式
-                        set_ip.add(ip_port)
-        print("www.66ip.cn",len(list(set_ip)),set_ip)
-    if 'www.xicidaili' in url:#有三种情况
-        if 'http://www.xicidaili.com/nn' in url:
-            for x in range(2,40):
-                url='http://www.xicidaili.com/nn/%s' % x
-                time.sleep(2)
-                get_xicidaili(url)
-        if 'http://www.xicidaili.com/nt' in url:
-            for x in range(2,40):
-                url='http://www.xicidaili.com/nt/%s' % x
-                time.sleep(2)
-                get_xicidaili(url)
-        if 'http://www.xicidaili.com/wt/' in url:
-            for x in range(2,40):
-                url='http://www.xicidaili.com/wt/%s' % x
-                time.sleep(2)
-                get_xicidaili(url)
-        if 'http://www.xicidaili.com/wn/' in url:
-            for x in range(2,40):
-                url='http://www.xicidaili.com/wn/%s' % x
-                time.sleep(2)
-                get_xicidaili(url)
-    if 'ip.yqie.com' in url:
-        soup=get_soup()
-        iplistn=soup.findAll('tr',align='center')
-        for i in iplistn:
-    #         print("i",i)
-            ip=i.text.strip().strip()
-            ip_list=ip.split()
-            for j in range(len(ip_list)):
-                if p.match(ip_list[j]):#如果是IP
-                    #ip_port[ip_list[j]]=ip_list[j+1]
-                    ip_port = str(ip_list[j].strip())+":"+str(ip_list[j+1].strip())#119.188.94.145:80这种形式
-                    set_ip.add(ip_port)
-    if 'www.ip3366.net' in url:
-        soup=get_soup()
-        iplistn=soup.findAll('tr')
-        for i in iplistn:
-    #         print("i",i)
-            ip=i.text.strip().strip()
-            ip_list=ip.split()
-            for j in range(len(ip_list)):
-                if p.match(ip_list[j]):#如果是IP
-                    ip_port = str(ip_list[j].strip())+":"+str(ip_list[j+1].strip())#119.188.94.145:80这种形式
-                    set_ip.add(ip_port)
-    
-    if 'www.kuaidaili.com' in url:
-        soup=get_soup()
-        iplistn=soup.findAll('table',class_="table table-bordered table-striped")#url = "http://www.66ip.cn/areaindex_2/1.html"
-#         print("soup",soup)
-        for tr in iplistn:
-            td = tr.find_all('td')
-            for j in range(len(td)):
-#                 print("j",type(td[j]),td[j].text)
-                if p.match(td[j].text):#如果是IP
-                #ip_port[ip_list[j]]=ip_list[j+1]
-                    ip_port = str(td[j].text.strip())+":"+str(td[j+1].text.strip())#119.188.94.145:80这种形式
-                    set_ip.add(ip_port)
-#将set中元素添加到list
+set_ip=set()
+with open('ip.txt','r') as f:
+    for line in f.readlines():
+        print(line.strip('\n'))
+        set_ip.add(line.strip('\n'))
+print(len(list(set_ip)))
 for name in set_ip:
-    print("name",name)
 #     ip["http:"] = name
-    proxy_ip.append(name)#将不重复的IP添加到列表中[{'http:','192.1.1.8:808'}]
-print("集合中数据量%s" %len(proxy_ip))
-#使用代理IP访问url
-
-
+    proxy_ip.append(name)
 def connect():
     config={'host':'192.168.160.132',
                 'user':'root',
@@ -276,7 +114,7 @@ def check_url(i):
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_5_8) AppleWebKit/534.31 (KHTML, like Gecko) Chrome/13.0.748.0 Safari/534.31",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_5_8) AppleWebKit/534.24 (KHTML, like Gecko) Chrome/11.0.696.68 Safari/534.24",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1664.3 Safari/537.36",
-        
+         
         #win8
         "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US) AppleWebKit/534.14 (KHTML, like Gecko) Chrome/9.0.601.0 Safari/534.14 ",
         "Mozilla/5.0 (Windows NT 6.0) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2 ",
@@ -518,6 +356,7 @@ def main():
         t.join() 
     init_proxy_db()
 
+# 获取当明时间,分钟
+
 if __name__=="__main__":
     main()
-#     check_url()
