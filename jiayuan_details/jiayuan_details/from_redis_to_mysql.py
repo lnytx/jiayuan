@@ -19,7 +19,7 @@ import time
 import urllib.parse
 from settings import IMAGES_STORE
 
-pool=redis.ConnectionPool(host='127.0.0.1',port=6379,db=0,decode_responses=True)  #427条记录
+pool=redis.ConnectionPool(host='192.168.160.32',port=6379,db=0,decode_responses=True)  #427条记录
 r = redis.StrictRedis(connection_pool=pool)  
 redis_pipe = r.pipeline() 
 
@@ -560,7 +560,9 @@ def read_redis_set():
     print("aa",type(a),len(a),a)
     
 if __name__=="__main__":
-    read_redis_list()
+    total_num = r.llen('jiayuan_last:items')
+    print("total_num",total_num)
+#     read_redis_list()
 #     a='学历：大专;身高：176cm;购车：--;月薪：2000～5000元;住房：--;体重：--;星座：天秤座;民族：--;属相：狗;血型：--;'
     a=';年龄：26-29岁之间;身高：169-185厘米;民族：汉族;学历：不限;相册：有照片;婚姻状况：未婚居住地：;湖北十堰诚信：不限'
     c = ['学历：本科', '身高：160cm', '购车：暂未购车', '月薪：2000～5000元', '住房：与父母同住', '体重：55公斤', '星座：天蝎座', '民族：汉族', '属相：羊', '血型：AB型']
