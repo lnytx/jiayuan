@@ -12,7 +12,7 @@ from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
 
 
 def connect():
-        config={'host':'127.0.0.1',
+        config={'host':'192.168.160.132',
                     'user':'root',
                     'password':'root',
                     'port':3306,

@@ -39,7 +39,7 @@ from jiayuan_details.settings import USER_NAME, PASSWD
 import redis
 import re
 
-pool=redis.ConnectionPool(host='127.0.0.1',port=6379,db=0,decode_responses=True)  #427条记录
+pool=redis.ConnectionPool(host='192.168.160.132',port=6379,db=0,decode_responses=True)  #427条记录
 r = redis.StrictRedis(connection_pool=pool)  
 redis_pipe = r.pipeline()
 
@@ -61,14 +61,14 @@ class jiayuan_data(RedisSpider):
 #         从redis中读取url
         start=0
         end=99
-        total_num = r.llen('jiayuan_sccuss:items')#总的item数量
+        total_num = r.llen('jiayuan_last:items')#总的item数量
         print("person_url当前数量",total_num)
         while total_num>0:
             with r.pipeline(transaction=False) as p:
-                p.lrange('jiayuan_sccuss:items',start,end)#每取50条执行一次
+                p.lrange('jiayuan_last:items',start,end)#每取50条执行一次
                 urls = p.execute()[0]
                 print("source",len(urls))
-                print("jiayuan_sccuss:items当前数量",total_num)
+                print("jiayuan_last:items当前数量",total_num)
                 for item in urls:
                     url = json.loads(item)
                     yield Request(url=url['url'],callback=self.get_main_info)

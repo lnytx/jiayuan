@@ -29,7 +29,7 @@ from scrapy.utils.python import global_object_name
 
 import redis
 global r
-pool=redis.ConnectionPool(host='127.0.0.1',port=6379,db=0,decode_responses=True)  #427条记录
+pool=redis.ConnectionPool(host='192.168.160.132',port=6379,db=0,decode_responses=True)  #427条记录
 r = redis.StrictRedis(connection_pool=pool)  
 
 logger = logging.getLogger(__name__)

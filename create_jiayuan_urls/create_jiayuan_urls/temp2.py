@@ -19,7 +19,7 @@ option.add_argument("--window-size=1920,1080")
 # option.add_argument(pro_ip['user_agent'])#自定ageng
 # option.add_argument('--proxy-server=http://'+pro_ip['ip_port'])
 # option.add_argument("--proxy-server=http://222.73.68.144:8090")
-pool=redis.ConnectionPool(host='127.0.0.1',port=6379,db=0,decode_responses=True)  #427条记录
+pool=redis.ConnectionPool(host='192.168.160.132',port=6379,db=0,decode_responses=True)  #427条记录
 r = redis.StrictRedis(connection_pool=pool)  
 redis_pipe = r.pipeline()
 print("登录中",USER_NAME)

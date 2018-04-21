@@ -35,7 +35,7 @@ import pymysql
 import pymysql
 import requests
 from scrapy.utils.project import get_project_settings
-
+import redis
 
 from twisted.internet import defer
 from twisted.internet.error import TimeoutError, DNSLookupError, \
@@ -43,7 +43,8 @@ from twisted.internet.error import TimeoutError, DNSLookupError, \
         ConnectionLost, TCPTimedOutError
 from twisted.web.client import ResponseFailed
 from scrapy.core.downloader.handlers.http11 import TunnelError
-
+pool=redis.ConnectionPool(host='192.168.160.132',port=6379,db=0,decode_responses=True)  #427条记录
+r = redis.StrictRedis(connection_pool=pool)  
 
 settings = get_project_settings()
 
@@ -62,7 +63,7 @@ settings = get_project_settings()
 '''
 
 def connect():
-        config={'host':'127.0.0.1',
+        config={'host':'192.168.160.132',
                     'user':'root',
                     'password':'root',
                     'port':3306,
@@ -183,6 +184,8 @@ class ProxyIP(object):
         """
 #         request_proxy_index = request.meta["proxy_index"]
         print('访问失败%s，出现异常%s' % (request.url, str(exception)))
+        r.rpush ('jiayuan_get_noPage',request.url)
+        r.save()
         # 只有当proxy_index>fixed_proxy-1时才进行比较, 这样能保证至少本地直连是存在的.
 #             if request_proxy_index > self.fixed_proxy - 1 and self.invalid_proxy_flag: # WARNING 直连时超时的话换个代理还是重试? 这是策略问题
 #                 if self.proxyes[request_proxy_index]["count"] < self.invalid_proxy_threshold:

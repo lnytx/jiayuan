@@ -37,7 +37,7 @@ from create_jiayuan_urls.settings import USER_NAME, PASSWD
 import re
 
 class jiayuan_data(RedisSpider):
-    pool=redis.ConnectionPool(host='127.0.0.1',port=6379,db=0,decode_responses=True)  #427条记录
+    pool=redis.ConnectionPool(host='192.168.160.132',port=6379,db=0,decode_responses=True)  #427条记录
     r = redis.StrictRedis(connection_pool=pool)  
     redis_pipe = r.pipeline()
 #     allowed_domains = ["jiayuan.com"]

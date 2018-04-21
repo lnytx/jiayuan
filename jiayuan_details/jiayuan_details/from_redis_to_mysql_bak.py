@@ -17,7 +17,7 @@ import redis
 import requests
 import time
 
-pool=redis.ConnectionPool(host='127.0.0.1',port=6379,db=0,decode_responses=True)  #427条记录
+pool=redis.ConnectionPool(host='192.168.160.132',port=6379,db=0,decode_responses=True)  #427条记录
 r = redis.StrictRedis(connection_pool=pool)  
 redis_pipe = r.pipeline() 
 
@@ -391,7 +391,7 @@ def parse_filename(file_name):
     #喂,要幸福\x0e_33岁_32595588'
 
 def connect():
-    config={'host':'127.0.0.1',
+    config={'host':'192.168.160.132',
                 'user':'root',
                 'password':'root',
                 'port':3306,

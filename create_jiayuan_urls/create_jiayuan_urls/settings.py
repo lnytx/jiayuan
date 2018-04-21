@@ -21,7 +21,7 @@ NEWSPIDER_MODULE = 'create_jiayuan_urls.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
-MYSQL_HOST = '127.0.0.1'
+MYSQL_HOST = '192.168.160.132'
 MYSQL_DBNAME = 'jiayuan'
 MYSQL_USER = 'root'
 MYSQL_PASSWD = 'root'
@@ -58,7 +58,7 @@ SCHEDULER_QUEUE_CLASS = 'scrapy_redis.queue.SpiderPriorityQueue'
 
 # 指定redis主机
 # REDIE_URL = None
-# REDIS_HOST='127.0.0.1'
+# REDIS_HOST='192.168.160.132'
 # REDIS_PORT=6379
 
 REDIS_URL = 'redis://192.168.160.132:6379'

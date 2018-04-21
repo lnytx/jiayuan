@@ -446,7 +446,7 @@ def parse_filename(file_name):
     #喂,要幸福\x0e_33岁_32595588'
 
 def connect():
-    config={'host':'127.0.0.1',
+    config={'host':'192.168.160.132',
                 'user':'root',
                 'password':'root',
                 'port':3306,

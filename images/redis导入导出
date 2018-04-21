@@ -1,4 +1,4 @@
 导出
-c:\Redis_6379>redis-cli.exe -h 127.0.0.1 config set appendonly yes
+c:\Redis_6379>redis-cli.exe -h 192.168.160.132 config set appendonly yes
 导入
 c:\Redis_6379>redis-cli -h 172.20.0.1 --pipe < appendonly.aof

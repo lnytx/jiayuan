@@ -20,7 +20,7 @@ NEWSPIDER_MODULE = 'jiayuan_details.spiders'
 
 ROBOTSTXT_OBEY = False
 
-MYSQL_HOST = '127.0.0.1'
+MYSQL_HOST = '192.168.160.132'
 MYSQL_DBNAME = 'jiayuan'
 MYSQL_USER = 'root'
 MYSQL_PASSWD = 'root'
@@ -57,7 +57,7 @@ SCHEDULER_QUEUE_CLASS = 'scrapy_redis.queue.SpiderPriorityQueue'
 
 # 指定redis主机
 REDIE_URL = None
-REDIS_HOST='127.0.0.1'
+REDIS_HOST='192.168.160.132'
 REDIS_PORT=6379
 
 
@@ -71,8 +71,8 @@ DOWNLOAD_DELAY = 3
 COOKIES_ENABLED = False
 
 #待爬网站的用户名与密码
-USER_NAME = '你的用户名'
-PASSWD = '你的密码'
+USER_NAME = '用户名'
+PASSWD = '密码'
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
 
